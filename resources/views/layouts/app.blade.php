@@ -247,36 +247,23 @@
             <!-- TOP NAVBAR -->
             <header class="h-16 bg-white dark:bg-[#0e1626] border-b border-slate-200/80 dark:border-slate-800/80 px-4 sm:px-8 flex items-center justify-between z-10 shadow-xs transition-colors duration-200">
                 <!-- Left: Mobile Toggle & Breadcrumb -->
-                <div class="flex items-center gap-3 sm:gap-4">
+                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                     <button @click="mobileSidebarOpen = true" class="lg:hidden text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                         <i class="fa-solid fa-bars-staggered text-base"></i>
                     </button>
 
-                    <div class="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1.5">
+                    <div class="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium truncate">
+                        <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1.5 flex-shrink-0">
                             <i class="fa-solid fa-house text-xs"></i>
                             <span>Home</span>
                         </a>
-                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 dark:text-slate-600"></i>
-                        <span class="font-bold text-slate-800 dark:text-slate-100">@yield('page_title', 'Dashboard Overview')</span>
-                    </div>
-                </div>
-
-                <!-- Middle: Live Search Bar (Desktop) -->
-                <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
-                    <div class="relative w-full">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" 
-                               placeholder="Live search database (alumni, event, album...)..." 
-                               class="w-full pl-9 pr-12 py-1.5 bg-slate-50 dark:bg-[#131d31] border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-[#18233a] transition-all">
-                        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-400 dark:text-slate-500 bg-slate-200/60 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                            ⌘ K
-                        </span>
+                        <i class="fa-solid fa-chevron-right text-[10px] text-slate-300 dark:text-slate-600 flex-shrink-0"></i>
+                        <span class="font-bold text-slate-800 dark:text-slate-100 truncate">@yield('page_title', 'Dashboard Overview')</span>
                     </div>
                 </div>
 
                 <!-- Right Header Actions -->
-                <div class="flex items-center gap-2.5 sm:gap-3">
+                <div class="flex items-center gap-2.5 sm:gap-3 ml-auto">
                     <!-- Text Size Toggle Button -->
                     <button type="button" 
                             @click="cycleTextSize()" 
@@ -285,7 +272,6 @@
                         <span class="font-black text-indigo-600 dark:text-indigo-400 text-xs">A</span>
                         <span class="text-[11px]" x-text="textSizeLabel">Teks: Normal</span>
                     </button>
-
 
                     <!-- Dark Mode Toggle Button -->
                     <button type="button" 

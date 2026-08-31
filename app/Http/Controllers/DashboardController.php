@@ -118,10 +118,15 @@ class DashboardController extends Controller
             case 'alumni':
                 $query = Alumni::with(['angkatan', 'kelas', 'user', 'pengurus', 'prestasi']);
                 if ($search) {
-                    $query->where('nama_lengkap', 'like', "%{$search}%")
+                    $query->where(function ($q) use ($search) {
+                        $q->where('nama_lengkap', 'like', "%{$search}%")
                           ->orWhere('nisn', 'like', "%{$search}%")
                           ->orWhere('pekerjaan_saat_ini', 'like', "%{$search}%")
-                          ->orWhere('sosial_media', 'like', "%{$search}%");
+                          ->orWhere('telepon', 'like', "%{$search}%")
+                          ->orWhere('alamat', 'like', "%{$search}%")
+                          ->orWhereHas('angkatan', fn($sub) => $sub->where('nama_angkatan', 'like', "%{$search}%"))
+                          ->orWhereHas('kelas', fn($sub) => $sub->where('nama_kelas', 'like', "%{$search}%"));
+                    });
                 }
                 break;
 
@@ -216,6 +221,14 @@ class DashboardController extends Controller
         $records = $query->latest('id')->paginate(10)->withQueryString();
 
         $formFields = (new AdminCrudController())->fieldsFor($table);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('tables._rows', compact('table', 'records', 'formFields', 'tableInfo'))->render(),
+                'pagination' => $records->links()->toHtml(),
+                'total' => $records->total(),
+            ]);
+        }
 
         return view('tables.show', compact('table', 'tableInfo', 'records', 'counts', 'search', 'validTables', 'formFields'));
     }

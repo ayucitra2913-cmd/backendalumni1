@@ -20,7 +20,6 @@ class Alumni extends Model
         'jenis_kelamin',
         'telepon',
         'alamat',
-        'sosial_media',
         'pekerjaan_saat_ini',
         'foto_profil',
     ];

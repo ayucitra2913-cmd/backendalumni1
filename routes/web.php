@@ -20,7 +20,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/table/{table}', [DashboardController::class, 'showTable'])->name('table.show');
 
-    // Generic CRUD (Create, Update, Delete) untuk semua 12 tabel
+    // Live Search API
+    Route::get('/api/live-search', [\App\Http\Controllers\SearchController::class, 'search'])->name('api.live-search');
+
+    // Generic CRUD (Create, Update, Delete) untuk semua 13 tabel
     Route::post('/table/{table}', [AdminCrudController::class, 'store'])->name('table.store');
     Route::put('/table/{table}/{id}', [AdminCrudController::class, 'update'])->name('table.update');
     Route::delete('/table/{table}/{id}', [AdminCrudController::class, 'destroy'])->name('table.destroy');
