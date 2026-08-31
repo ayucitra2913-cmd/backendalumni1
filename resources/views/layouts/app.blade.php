@@ -1,3 +1,13 @@
+@php
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $dbConnected = true;
+        $dbName = \Illuminate\Support\Facades\DB::connection()->getDatabaseName();
+    } catch (\Throwable $e) {
+        $dbConnected = false;
+        $dbName = null;
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="id" class="h-full bg-slate-50">
 <head>
@@ -56,7 +66,6 @@
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #334155;
-            border-radius: 9999px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #475569;
@@ -90,12 +99,9 @@
                         Overview
                     </div>
                     <a href="{{ route('dashboard') }}" 
-                       class="flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 {{ request()->routeIs('dashboard') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-semibold' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-chart-pie w-5 text-center {{ request()->routeIs('dashboard') ? 'text-white' : 'text-indigo-400' }}"></i>
-                            <span>Dashboard Utama</span>
-                        </div>
-                        <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full {{ request()->routeIs('dashboard') ? 'bg-indigo-800 text-white' : 'bg-slate-800 text-slate-400' }}">Live</span>
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 {{ request()->routeIs('dashboard') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-semibold' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white' }}">
+                        <i class="fa-solid fa-chart-pie w-5 text-center {{ request()->routeIs('dashboard') ? 'text-white' : 'text-indigo-400' }}"></i>
+                        <span>Dashboard Utama</span>
                     </a>
                 </div>
 
@@ -150,10 +156,14 @@
                 <div class="flex items-center justify-between text-xs">
                     <div class="flex items-center gap-2">
                         <span class="relative flex h-2.5 w-2.5">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            @if($dbConnected)
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            @else
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                            @endif
                         </span>
-                        
+                        <span class="text-slate-400 text-[11px]">{{ $dbConnected ? 'Database Connected' : 'Database Disconnected' }}</span>
                     </div>
                     <span class="text-slate-400 text-[10px] bg-slate-800 px-2 py-0.5 rounded">12 Tabel</span>
                 </div>
@@ -242,9 +252,25 @@
 
                 <!-- Right Header Actions -->
                 <div class="flex items-center gap-3 sm:gap-4">
-                  
+                    <!-- Database Status Pill -->
+                    @if($dbConnected)
+                        <div class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span>Database: <span class="font-bold">Connected</span> <span class="text-emerald-600/80 font-normal">({{ $dbName }})</span></span>
+                        </div>
+                    @else
+                        <div class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80 shadow-xs">
+                            <span class="relative flex h-2 w-2">
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                            </span>
+                            <span>Database: <span class="font-bold">Disconnected</span></span>
+                        </div>
+                    @endif
 
-                    <!-- Seed Data Button -->
+                    <!-- Refresh Button -->
                     <a href="{{ route('dashboard') }}" title="Refresh / Home" class="h-9 w-9 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 flex items-center justify-center transition-colors">
                         <i class="fa-solid fa-rotate text-sm"></i>
                     </a>
@@ -298,10 +324,6 @@
             <footer class="bg-white border-t border-slate-200 px-6 py-3.5 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <span class="font-bold text-slate-700">AlumniHub Database System</span>
-                    <span>•</span>
-                    <span>Laravel v{{ Illuminate\Foundation\Application::VERSION }}</span>
-                    <span>•</span>
-                    <span>PHP v{{ PHP_VERSION }}</span>
                 </div>
                 <div class="text-slate-400">
                     Sistem Database & Portal Informasi Alumni

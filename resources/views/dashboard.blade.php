@@ -16,7 +16,7 @@
                 Selamat Datang di <span class="bg-gradient-to-r from-indigo-400 to-cyan-300 bg-clip-text text-transparent">Portal Database Alumni</span>
             </h2>
             <p class="mt-2 text-sm sm:text-base text-slate-300 leading-relaxed">
-                Koneksi database <code class="bg-slate-800 px-2 py-0.5 rounded text-cyan-300 font-mono text-xs">db_alumni</code> aktif dengan 12 tabel fungsional lengkap dengan data dummy realistis. Pilih tabel pada sidebar atau jelajahi ringkasan di bawah.
+                Kelola, pantau, dan eksplorasi data alumni, kepengurusan, prestasi, serta konten informasi institusi secara terpadu melalui panel manajemen database.
             </p>
         </div>
         
@@ -101,7 +101,6 @@
                 <h3 class="text-lg font-bold text-slate-800">Eksplorasi 12 Tabel Database</h3>
                 <p class="text-xs text-slate-500">Klik salah satu kartu tabel untuk melihat, memfilter, dan mencari data</p>
             </div>
-            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-200 text-slate-700">12 Tables Available</span>
         </div>
 
         @php
