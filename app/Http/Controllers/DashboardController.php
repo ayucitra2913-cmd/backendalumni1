@@ -12,6 +12,7 @@ use App\Models\Acara;
 use App\Models\Gallery;
 use App\Models\Kelas;
 use App\Models\PengurusAlumni;
+use App\Models\PeriodeKepengurusan;
 use App\Models\PrestasiAlumni;
 use App\Models\Testimony;
 use App\Models\User;
@@ -28,16 +29,17 @@ class DashboardController extends Controller
     {
         return Cache::remember('dashboard_table_counts', 10, function () {
             return [
+                'alumni' => Alumni::count(),
                 'angkatan' => Angkatan::count(),
                 'kelas' => Kelas::count(),
-                'alumni' => Alumni::count(),
                 'users' => User::count(),
-                'albums' => Album::count(),
-                'galleries' => Gallery::count(),
-                'artikels' => Artikel::count(),
-                'acara' => Acara::count(),
+                'periode_kepengurusan' => PeriodeKepengurusan::count(),
                 'pengurus_alumni' => PengurusAlumni::count(),
                 'prestasi_alumni' => PrestasiAlumni::count(),
+                'artikels' => Artikel::count(),
+                'acara' => Acara::count(),
+                'albums' => Album::count(),
+                'galleries' => Gallery::count(),
                 'testimonies' => Testimony::count(),
                 'contents' => Content::count(),
             ];
@@ -72,18 +74,19 @@ class DashboardController extends Controller
     public function showTable(Request $request, string $table)
     {
         $validTables = [
+            'alumni' => ['title' => 'Data Alumni', 'icon' => 'fa-user-graduate', 'desc' => 'Data lengkap profil alumni, kontak, dan pekerjaan'],
             'angkatan' => ['title' => 'Tahun Angkatan', 'icon' => 'fa-graduation-cap', 'desc' => 'Daftar tahun angkatan kelulusan alumni'],
             'kelas' => ['title' => 'Daftar Kelas', 'icon' => 'fa-chalkboard-user', 'desc' => 'Daftar pembagian kelas berdasarkan angkatan'],
-            'alumni' => ['title' => 'Data Alumni', 'icon' => 'fa-user-graduate', 'desc' => 'Data lengkap profil alumni, kontak, dan pekerjaan'],
-            'users' => ['title' => 'Pengguna & Akun', 'icon' => 'fa-users-gear', 'desc' => 'Akun pengguna sistem dan otentikasi login'],
-            'albums' => ['title' => 'Album Foto Kegiatan', 'icon' => 'fa-images', 'desc' => 'Koleksi album kegiatan dan dokumentasi alumni'],
-            'galleries' => ['title' => 'Galeri Foto', 'icon' => 'fa-camera-retro', 'desc' => 'Foto-foto dalam setiap album kegiatan'],
-            'artikels' => ['title' => 'Artikel & Berita', 'icon' => 'fa-newspaper', 'desc' => 'Publikasi artikel, berita, dan inspirasi alumni'],
-            'acara' => ['title' => 'Acara & Agenda Kegiatan', 'icon' => 'fa-calendar-days', 'desc' => 'Jadwal temu alumni, reuni, seminar, dan bakti sosial'],
-            'pengurus_alumni' => ['title' => 'Struktur Pengurus Alumni', 'icon' => 'fa-sitemap', 'desc' => 'Susunan pengurus dan organisasi ikatan alumni'],
-            'prestasi_alumni' => ['title' => 'Prestasi & Penghargaan', 'icon' => 'fa-trophy', 'desc' => 'Daftar pencapaian membanggakan para alumni'],
-            'testimonies' => ['title' => 'Testimoni Alumni', 'icon' => 'fa-comment-dots', 'desc' => 'Ulasan dan kesan pesan dari alumni'],
-            'contents' => ['title' => 'Konten Halaman Web', 'icon' => 'fa-file-lines', 'desc' => 'Konten dinamis website (Visi, Misi, Kontak, Hero)'],
+            'users' => ['title' => 'Users / Akun', 'icon' => 'fa-users-gear', 'desc' => 'Akun pengguna sistem dan otentikasi login'],
+            'periode_kepengurusan' => ['title' => 'Periode Kepengurusan', 'icon' => 'fa-calendar-check', 'desc' => 'Daftar masa bakti dan periode jabatan kepengurusan alumni'],
+            'pengurus_alumni' => ['title' => 'Pengurus Alumni', 'icon' => 'fa-sitemap', 'desc' => 'Susunan struktur organisasi dan pengurus ikatan alumni'],
+            'prestasi_alumni' => ['title' => 'Prestasi Alumni', 'icon' => 'fa-trophy', 'desc' => 'Daftar penghargaan dan pencapaian membanggakan para alumni'],
+            'artikels' => ['title' => 'Artikel & Berita', 'icon' => 'fa-newspaper', 'desc' => 'Publikasi artikel, berita informasi, dan inspirasi alumni'],
+            'acara' => ['title' => 'Acara & Agenda', 'icon' => 'fa-calendar-days', 'desc' => 'Jadwal temu alumni, reuni akbar, seminar, dan bakti sosial'],
+            'albums' => ['title' => 'Album Foto', 'icon' => 'fa-images', 'desc' => 'Koleksi album foto kegiatan dan dokumentasi alumni'],
+            'galleries' => ['title' => 'Galeri Foto', 'icon' => 'fa-camera-retro', 'desc' => 'Foto-foto dokumentasi dalam setiap album kegiatan'],
+            'testimonies' => ['title' => 'Testimoni Alumni', 'icon' => 'fa-comment-dots', 'desc' => 'Ulasan, kesan, dan pesan inspiratif dari para alumni'],
+            'contents' => ['title' => 'Konten Halaman', 'icon' => 'fa-file-lines', 'desc' => 'Pengaturan konten dinamis portal website institusi'],
         ];
 
         if (!array_key_exists($table, $validTables)) {
@@ -107,7 +110,7 @@ class DashboardController extends Controller
             case 'kelas':
                 $query = Kelas::with('angkatan')->withCount('alumni');
                 if ($search) {
-                    $query->where('kelas', 'like', "%{$search}%")
+                    $query->where('nama_kelas', 'like', "%{$search}%")
                           ->orWhereHas('angkatan', fn($q) => $q->where('nama_angkatan', 'like', "%{$search}%"));
                 }
                 break;
@@ -162,6 +165,13 @@ class DashboardController extends Controller
                     $query->where('nama_acara', 'like', "%{$search}%")
                           ->orWhere('lokasi', 'like', "%{$search}%")
                           ->orWhere('deskripsi', 'like', "%{$search}%");
+                }
+                break;
+
+            case 'periode_kepengurusan':
+                $query = PeriodeKepengurusan::withCount('pengurus');
+                if ($search) {
+                    $query->where('nama_periode', 'like', "%{$search}%");
                 }
                 break;
 

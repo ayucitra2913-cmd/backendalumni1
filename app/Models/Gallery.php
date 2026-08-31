@@ -14,19 +14,8 @@ class Gallery extends Model
     protected $fillable = [
         'album_id',
         'file_url',
-        'keterangan',
         'caption',
     ];
-
-    public function getCaptionAttribute()
-    {
-        return $this->attributes['keterangan'] ?? ($this->attributes['caption'] ?? null);
-    }
-
-    public function setCaptionAttribute($value)
-    {
-        $this->attributes['keterangan'] = $value;
-    }
 
     public function album()
     {

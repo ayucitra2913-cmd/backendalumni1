@@ -56,7 +56,7 @@ class AdminCrudController extends Controller
             ],
             'kelas' => [
                 ['name' => 'angkatan_id', 'label' => 'Angkatan', 'type' => 'select', 'required' => true, 'options' => $this->optionsFor('angkatan')],
-                ['name' => 'kelas', 'label' => 'Nama Kelas', 'type' => 'text', 'required' => true],
+                ['name' => 'nama_kelas', 'label' => 'Nama Kelas', 'type' => 'text', 'required' => true],
             ],
             'alumni' => [
                 ['name' => 'user_id', 'label' => 'Akun User (opsional)', 'type' => 'select', 'required' => false, 'options' => $this->optionsFor('users')],
@@ -122,6 +122,11 @@ class AdminCrudController extends Controller
                 ['name' => 'pesan', 'label' => 'Pesan Testimoni', 'type' => 'textarea', 'required' => true],
                 ['name' => 'status', 'label' => 'Status', 'type' => 'select', 'required' => true, 'options' => ['pending' => 'Pending', 'approved' => 'Approved']],
             ],
+            'periode_kepengurusan' => [
+                ['name' => 'nama_periode', 'label' => 'Nama Periode Kepengurusan', 'type' => 'text', 'required' => true],
+                ['name' => 'tanggal_mulai', 'label' => 'Tanggal Mulai', 'type' => 'date', 'required' => false],
+                ['name' => 'tanggal_selesai', 'label' => 'Tanggal Selesai', 'type' => 'date', 'required' => false],
+            ],
             'contents' => [
                 ['name' => 'key_identifier', 'label' => 'Key Identifier', 'type' => 'text', 'required' => true],
                 ['name' => 'judul', 'label' => 'Judul Konten', 'type' => 'text', 'required' => true],
@@ -140,9 +145,9 @@ class AdminCrudController extends Controller
         return match ($table) {
             'angkatan' => Angkatan::orderByDesc('tahun_angkatan')->pluck('nama_angkatan', 'id')->toArray(),
             'kelas' => Kelas::join('angkatan', 'kelas.angkatan_id', '=', 'angkatan.id')
-                ->select('kelas.id', 'kelas.kelas', 'angkatan.nama_angkatan')
+                ->select('kelas.id', 'kelas.nama_kelas', 'angkatan.nama_angkatan')
                 ->get()
-                ->mapWithKeys(fn ($k) => [$k->id => ($k->kelas ?? '-') . ' (' . ($k->nama_angkatan ?? '-') . ')'])
+                ->mapWithKeys(fn ($k) => [$k->id => ($k->nama_kelas ?? '-') . ' (' . ($k->nama_angkatan ?? '-') . ')'])
                 ->toArray(),
             'users' => User::orderBy('username')->pluck('username', 'id')->toArray(),
             'alumni' => Alumni::orderBy('nama_lengkap')->pluck('nama_lengkap', 'id')->toArray(),
@@ -164,7 +169,7 @@ class AdminCrudController extends Controller
             ],
             'kelas' => [
                 'angkatan_id' => ['required', 'exists:angkatan,id'],
-                'kelas' => ['required', 'string', 'max:255'],
+                'nama_kelas' => ['required', 'string', 'max:255'],
             ],
             'alumni' => [
                 'user_id' => ['nullable', 'exists:users,id'],
@@ -198,7 +203,7 @@ class AdminCrudController extends Controller
             'artikels', 'artikel' => [
                 'user_id' => ['nullable', 'exists:users,id'],
                 'judul' => ['required', 'string', 'max:255'],
-                'slug' => ['required', 'string', 'max:255', Rule::unique('artikel', 'slug')->ignore($ignoreId)],
+                'slug' => ['required', 'string', 'max:255', Rule::unique('artikels', 'slug')->ignore($ignoreId)],
                 'konten' => ['required', 'string'],
                 'gambar_utama' => ['nullable', 'string', 'max:2048'],
                 'status' => ['required', Rule::in(['draft', 'published'])],
@@ -229,6 +234,11 @@ class AdminCrudController extends Controller
                 'alumni_id' => ['required', 'exists:alumni,id'],
                 'pesan' => ['required', 'string'],
                 'status' => ['required', Rule::in(['pending', 'approved'])],
+            ],
+            'periode_kepengurusan' => [
+                'nama_periode' => ['required', 'string', 'max:100'],
+                'tanggal_mulai' => ['nullable', 'date'],
+                'tanggal_selesai' => ['nullable', 'date', 'after_or_equal:tanggal_mulai'],
             ],
             'contents' => [
                 'key_identifier' => ['required', 'string', 'max:255', Rule::unique('contents', 'key_identifier')->ignore($ignoreId)],

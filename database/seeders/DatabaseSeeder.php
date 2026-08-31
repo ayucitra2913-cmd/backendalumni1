@@ -13,6 +13,7 @@ use App\Models\Gallery;
 use App\Models\Artikel;
 use App\Models\Acara;
 use App\Models\PengurusAlumni;
+use App\Models\PeriodeKepengurusan;
 use App\Models\PrestasiAlumni;
 use App\Models\Testimony;
 use App\Models\Content;
@@ -132,18 +133,33 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        // ─── PERIODE KEPENGURUSAN ────────────────────────────────
+        $periode1 = PeriodeKepengurusan::create([
+            'nama_periode'    => 'Periode 2023 - 2025',
+            'tanggal_mulai'   => '2023-01-01',
+            'tanggal_selesai' => '2025-12-31',
+        ]);
+
+        $periode2 = PeriodeKepengurusan::create([
+            'nama_periode'    => 'Periode 2025 - 2027',
+            'tanggal_mulai'   => '2025-01-01',
+            'tanggal_selesai' => '2027-12-31',
+        ]);
+
         // ─── PENGURUS ALUMNI ──────────────────────────────────────
         $pengurusData = [
-            ['alumni' => $alumniModels[0], 'jabatan' => 'Ketua Umum',       'mulai' => '2023-01-01', 'selesai' => '2025-12-31'],
-            ['alumni' => $alumniModels[1], 'jabatan' => 'Sekretaris Umum',  'mulai' => '2023-01-01', 'selesai' => '2025-12-31'],
-            ['alumni' => $alumniModels[2], 'jabatan' => 'Bendahara Umum',   'mulai' => '2023-01-01', 'selesai' => '2025-12-31'],
-            ['alumni' => $alumniModels[3], 'jabatan' => 'Ketua Bidang Sosial', 'mulai' => '2023-01-01', 'selesai' => null],
-            ['alumni' => $alumniModels[4], 'jabatan' => 'Ketua Bidang IT',  'mulai' => '2023-01-01', 'selesai' => null],
+            ['alumni' => $alumniModels[0], 'periode' => $periode1, 'jabatan' => 'Ketua Umum',          'mulai' => '2023-01-01', 'selesai' => '2025-12-31'],
+            ['alumni' => $alumniModels[1], 'periode' => $periode1, 'jabatan' => 'Wakil Ketua Umum',    'mulai' => '2023-01-01', 'selesai' => '2025-12-31'],
+            ['alumni' => $alumniModels[2], 'periode' => $periode1, 'jabatan' => 'Sekretaris Jenderal', 'mulai' => '2023-01-01', 'selesai' => '2025-12-31'],
+            ['alumni' => $alumniModels[3], 'periode' => $periode1, 'jabatan' => 'Bendahara Umum',      'mulai' => '2023-01-01', 'selesai' => '2025-12-31'],
+            ['alumni' => $alumniModels[4], 'periode' => $periode1, 'jabatan' => 'Ketua Divisi IT & Digital', 'mulai' => '2023-01-01', 'selesai' => '2025-12-31'],
+            ['alumni' => $alumniModels[5], 'periode' => $periode1, 'jabatan' => 'Ketua Divisi Humas & Jaringan', 'mulai' => '2023-01-01', 'selesai' => '2025-12-31'],
         ];
 
         foreach ($pengurusData as $p) {
             PengurusAlumni::create([
                 'alumni_id'     => $p['alumni']->id,
+                'periode_id'    => $p['periode']->id,
                 'jabatan'       => $p['jabatan'],
                 'periode_mulai' => $p['mulai'],
                 'periode_selesai' => $p['selesai'],
