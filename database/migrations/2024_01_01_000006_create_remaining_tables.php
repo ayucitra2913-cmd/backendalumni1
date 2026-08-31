@@ -8,9 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::create('periode_kepengurusan', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama_periode', 100);
+            $table->date('tanggal_mulai')->nullable();
+            $table->date('tanggal_selesai')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('pengurus_alumni', function (Blueprint $table) {
             $table->id();
             $table->foreignId('alumni_id')->constrained('alumni')->onDelete('cascade');
+            $table->foreignId('periode_id')->nullable()->constrained('periode_kepengurusan')->onDelete('set null');
             $table->string('jabatan', 100);
             $table->date('periode_mulai')->nullable();
             $table->date('periode_selesai')->nullable();
@@ -52,5 +61,6 @@ return new class extends Migration
         Schema::dropIfExists('testimonies');
         Schema::dropIfExists('prestasi_alumni');
         Schema::dropIfExists('pengurus_alumni');
+        Schema::dropIfExists('periode_kepengurusan');
     }
 };

@@ -45,8 +45,8 @@ class User extends Authenticatable
         return $this->hasMany(Artikel::class, 'user_id');
     }
 
-    public function events()
+    public function acara()
     {
-        return $this->hasMany(Event::class, 'user_id');
+        return $this->hasMany(Acara::class, 'user_id');
     }
 }

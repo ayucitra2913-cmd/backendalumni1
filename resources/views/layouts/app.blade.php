@@ -15,62 +15,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Alumni Portal') - Database Explorer & Dashboard</title>
     
-    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            200: '#c7d2fe',
-                            300: '#a5b4fc',
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            800: '#3730a3',
-                            900: '#312e81',
-                            950: '#1e1b4b',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <style>
-        [x-cloak] { display: none !important; }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #334155;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-    </style>
+    <!-- Vite compiled Tailwind CSS (no DOM scanning = no CPU spike) -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Alpine.js v3.14.1 (pinned stable release) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </head>
 <body class="h-full text-slate-800 antialiased flex flex-col" x-data="{ mobileSidebarOpen: false }">
 
@@ -155,12 +112,11 @@
             <div class="p-4 border-t border-slate-800/80 bg-slate-950/60">
                 <div class="flex items-center justify-between text-xs">
                     <div class="flex items-center gap-2">
-                        <span class="relative flex h-2.5 w-2.5">
+                        <span class="relative flex h-2 w-2">
                             @if($dbConnected)
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                <span class="inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
                             @else
-                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                                <span class="inline-flex rounded-full h-2 w-2 bg-rose-500 shadow-xs shadow-rose-500/50"></span>
                             @endif
                         </span>
                         <span class="text-slate-400 text-[11px]">{{ $dbConnected ? 'Database Connected' : 'Database Disconnected' }}</span>
@@ -180,7 +136,7 @@
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
                  @click="mobileSidebarOpen = false"
-                 class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm"></div>
+                 class="fixed inset-0 bg-slate-900/80"></div>
 
             <div x-show="mobileSidebarOpen" 
                  x-transition:enter="transition ease-in-out duration-300 transform"
@@ -255,17 +211,12 @@
                     <!-- Database Status Pill -->
                     @if($dbConnected)
                         <div class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs">
-                            <span class="relative flex h-2 w-2">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                            </span>
+                            <span class="inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             <span>Database: <span class="font-bold">Connected</span> <span class="text-emerald-600/80 font-normal">({{ $dbName }})</span></span>
                         </div>
                     @else
                         <div class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80 shadow-xs">
-                            <span class="relative flex h-2 w-2">
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-                            </span>
+                            <span class="inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                             <span>Database: <span class="font-bold">Disconnected</span></span>
                         </div>
                     @endif

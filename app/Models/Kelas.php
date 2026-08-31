@@ -13,8 +13,13 @@ class Kelas extends Model
 
     protected $fillable = [
         'angkatan_id',
-        'nama_kelas',
+        'kelas',
     ];
+
+    public function getNamaKelasAttribute()
+    {
+        return $this->attributes['kelas'] ?? null;
+    }
 
     public function angkatan()
     {

@@ -3,22 +3,21 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Acara;
 use App\Models\Album;
 use App\Models\Alumni;
 use App\Models\Angkatan;
 use App\Models\Artikel;
 use App\Models\Content;
-use App\Models\Event;
 use App\Models\Gallery;
 use App\Models\Kelas;
 use App\Models\PengurusAlumni;
+use App\Models\PeriodeKepengurusan;
 use App\Models\PrestasiAlumni;
 use App\Models\Testimony;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use App\Models\PeriodeKepengurusan;
 
 class AdminCrudController extends Controller
 {
@@ -34,8 +33,8 @@ class AdminCrudController extends Controller
             'users' => User::class,
             'albums' => Album::class,
             'galleries' => Gallery::class,
-            'artikels' => Artikel::class,
-            'events' => Event::class,
+            'artikels', 'artikel' => Artikel::class,
+            'acara', 'events' => Acara::class,
             'pengurus_alumni' => PengurusAlumni::class,
             'prestasi_alumni' => PrestasiAlumni::class,
             'testimonies' => Testimony::class,
@@ -57,7 +56,7 @@ class AdminCrudController extends Controller
             ],
             'kelas' => [
                 ['name' => 'angkatan_id', 'label' => 'Angkatan', 'type' => 'select', 'required' => true, 'options' => $this->optionsFor('angkatan')],
-                ['name' => 'nama_kelas', 'label' => 'Nama Kelas', 'type' => 'text', 'required' => true],
+                ['name' => 'kelas', 'label' => 'Nama Kelas', 'type' => 'text', 'required' => true],
             ],
             'alumni' => [
                 ['name' => 'user_id', 'label' => 'Akun User (opsional)', 'type' => 'select', 'required' => false, 'options' => $this->optionsFor('users')],
@@ -88,7 +87,7 @@ class AdminCrudController extends Controller
                 ['name' => 'file_url', 'label' => 'URL Foto', 'type' => 'text', 'required' => true],
                 ['name' => 'caption', 'label' => 'Caption', 'type' => 'text', 'required' => false],
             ],
-            'artikels' => [
+            'artikels', 'artikel' => [
                 ['name' => 'user_id', 'label' => 'Penulis (User)', 'type' => 'select', 'required' => false, 'options' => $this->optionsFor('users')],
                 ['name' => 'judul', 'label' => 'Judul Artikel', 'type' => 'text', 'required' => true],
                 ['name' => 'slug', 'label' => 'Slug (URL)', 'type' => 'text', 'required' => true],
@@ -96,9 +95,9 @@ class AdminCrudController extends Controller
                 ['name' => 'gambar_utama', 'label' => 'URL Gambar Utama', 'type' => 'text', 'required' => false],
                 ['name' => 'status', 'label' => 'Status', 'type' => 'select', 'required' => true, 'options' => ['draft' => 'Draft', 'published' => 'Published']],
             ],
-            'events' => [
+            'acara', 'events' => [
                 ['name' => 'user_id', 'label' => 'Penyelenggara (User)', 'type' => 'select', 'required' => false, 'options' => $this->optionsFor('users')],
-                ['name' => 'nama_event', 'label' => 'Nama Event', 'type' => 'text', 'required' => true],
+                ['name' => 'nama_acara', 'label' => 'Nama Acara', 'type' => 'text', 'required' => true],
                 ['name' => 'deskripsi', 'label' => 'Deskripsi', 'type' => 'textarea', 'required' => false],
                 ['name' => 'tanggal_mulai', 'label' => 'Tanggal Mulai', 'type' => 'datetime-local', 'required' => false],
                 ['name' => 'tanggal_selesai', 'label' => 'Tanggal Selesai', 'type' => 'datetime-local', 'required' => false],
@@ -134,17 +133,21 @@ class AdminCrudController extends Controller
     }
 
     /**
-     * Ambil daftar opsi [id => label] dari tabel relasi untuk dropdown select.
+     * Ambil daftar opsi [id => label] dari tabel relasi untuk dropdown select secara efisien.
      */
     protected function optionsFor(string $table): array
     {
         return match ($table) {
-            'angkatan' => Angkatan::orderByDesc('tahun_angkatan')->get()->pluck('nama_angkatan', 'id')->toArray(),
-            'kelas' => Kelas::with('angkatan')->get()->mapWithKeys(fn ($k) => [$k->id => $k->nama_kelas . ' (' . ($k->angkatan->nama_angkatan ?? '-') . ')'])->toArray(),
-            'users' => User::orderBy('username')->get()->pluck('username', 'id')->toArray(),
-            'alumni' => Alumni::orderBy('nama_lengkap')->get()->pluck('nama_lengkap', 'id')->toArray(),
-            'albums' => Album::orderBy('nama_album')->get()->pluck('nama_album', 'id')->toArray(),
-            'periode_kepengurusan' => PeriodeKepengurusan::orderByDesc('tanggal_mulai')->get()->pluck('nama_periode', 'id')->toArray(),
+            'angkatan' => Angkatan::orderByDesc('tahun_angkatan')->pluck('nama_angkatan', 'id')->toArray(),
+            'kelas' => Kelas::join('angkatan', 'kelas.angkatan_id', '=', 'angkatan.id')
+                ->select('kelas.id', 'kelas.kelas', 'angkatan.nama_angkatan')
+                ->get()
+                ->mapWithKeys(fn ($k) => [$k->id => ($k->kelas ?? '-') . ' (' . ($k->nama_angkatan ?? '-') . ')'])
+                ->toArray(),
+            'users' => User::orderBy('username')->pluck('username', 'id')->toArray(),
+            'alumni' => Alumni::orderBy('nama_lengkap')->pluck('nama_lengkap', 'id')->toArray(),
+            'albums' => Album::orderBy('nama_album')->pluck('nama_album', 'id')->toArray(),
+            'periode_kepengurusan' => PeriodeKepengurusan::orderByDesc('tanggal_mulai')->pluck('nama_periode', 'id')->toArray(),
             default => [],
         };
     }
@@ -161,7 +164,7 @@ class AdminCrudController extends Controller
             ],
             'kelas' => [
                 'angkatan_id' => ['required', 'exists:angkatan,id'],
-                'nama_kelas' => ['required', 'string', 'max:255'],
+                'kelas' => ['required', 'string', 'max:255'],
             ],
             'alumni' => [
                 'user_id' => ['nullable', 'exists:users,id'],
@@ -192,17 +195,17 @@ class AdminCrudController extends Controller
                 'file_url' => ['required', 'string', 'max:2048'],
                 'caption' => ['nullable', 'string', 'max:255'],
             ],
-            'artikels' => [
+            'artikels', 'artikel' => [
                 'user_id' => ['nullable', 'exists:users,id'],
                 'judul' => ['required', 'string', 'max:255'],
-                'slug' => ['required', 'string', 'max:255', Rule::unique('artikels', 'slug')->ignore($ignoreId)],
+                'slug' => ['required', 'string', 'max:255', Rule::unique('artikel', 'slug')->ignore($ignoreId)],
                 'konten' => ['required', 'string'],
                 'gambar_utama' => ['nullable', 'string', 'max:2048'],
                 'status' => ['required', Rule::in(['draft', 'published'])],
             ],
-            'events' => [
+            'acara' => [
                 'user_id' => ['nullable', 'exists:users,id'],
-                'nama_event' => ['required', 'string', 'max:255'],
+                'nama_acara' => ['required', 'string', 'max:255'],
                 'deskripsi' => ['nullable', 'string'],
                 'tanggal_mulai' => ['nullable', 'date'],
                 'tanggal_selesai' => ['nullable', 'date', 'after_or_equal:tanggal_mulai'],
@@ -211,7 +214,7 @@ class AdminCrudController extends Controller
             ],
             'pengurus_alumni' => [
                 'alumni_id' => ['required', 'exists:alumni,id'],
-                'periode_id' => ['required', 'exists:periode_kepengurusan,id',],
+                'periode_id' => ['required', 'exists:periode_kepengurusan,id'],
                 'jabatan' => ['required', 'string', 'max:225'],
             ],
             'prestasi_alumni' => [
@@ -245,10 +248,6 @@ class AdminCrudController extends Controller
         $modelClass = $this->modelFor($table);
         $data = $request->validate($this->rules($table));
 
-        if ($table === 'users') {
-            $data['password'] = Hash::make($data['password']);
-        }
-
         $modelClass::create($data);
 
         return redirect()
@@ -266,12 +265,8 @@ class AdminCrudController extends Controller
 
         $data = $request->validate($this->rules($table, $id));
 
-        if ($table === 'users') {
-            if (!empty($data['password'])) {
-                $data['password'] = Hash::make($data['password']);
-            } else {
-                unset($data['password']);
-            }
+        if ($table === 'users' && empty($data['password'])) {
+            unset($data['password']);
         }
 
         $record->update($data);

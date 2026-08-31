@@ -5,10 +5,25 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto space-y-6" x-data="{
-        selectedRecord: null, modalOpen: false,
-        createOpen: {{ $errors->any() && old('_token') ? 'true' : 'false' }}, createForm: {},
-        editOpen: false, editRecord: {},
-        deleteOpen: false, deleteRecord: null
+        selectedRecord: null,
+        modalOpen: false,
+        createOpen: {{ $errors->any() && old('_token') ? 'true' : 'false' }},
+        editOpen: false,
+        editRecord: {},
+        deleteOpen: false,
+        deleteRecord: null,
+        openDetail(record) {
+            this.selectedRecord = record;
+            this.modalOpen = true;
+        },
+        openEdit(record) {
+            this.editRecord = Object.assign({}, record);
+            this.editOpen = true;
+        },
+        openDelete(id, label) {
+            this.deleteRecord = { id: id, label: label };
+            this.deleteOpen = true;
+        }
     }">
 
     <!-- HEADER SECTION -->
@@ -50,7 +65,8 @@
                 </button>
             </form>
 
-            <button @click="createForm = {}; createOpen = true"
+            <button type="button" 
+                    @click="createOpen = true"
                     class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm inline-flex items-center gap-1.5 whitespace-nowrap">
                 <i class="fa-solid fa-plus"></i>
                 <span class="hidden sm:inline">Tambah Data</span>
@@ -231,7 +247,7 @@
                                     <td class="py-4 px-4 text-slate-600 text-xs">{{ $row->caption }}</td>
 
                                 <!-- 7. ARTIKELS -->
-                                @elseif($table === 'artikel')
+                                @elseif($table === 'artikels')
                                     <td class="py-4 px-4">
                                         <img src="{{ $row->gambar_utama }}" alt="Artikel" class="w-14 h-10 rounded-lg object-cover ring-1 ring-slate-200 shadow-sm">
                                     </td>
@@ -241,7 +257,7 @@
                                     </td>
                                     <td class="py-4 px-4">
                                         @if($row->status === 'published')
-                                            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Published</span>
+                                             <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Published</span>
                                         @else
                                             <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">Draft</span>
                                         @endif
@@ -253,7 +269,7 @@
                                     <td class="py-4 px-4">
                                         <img src="{{ $row->banner_image }}" alt="Event" class="w-14 h-10 rounded-lg object-cover ring-1 ring-slate-200 shadow-sm">
                                     </td>
-                                    <td class="py-4 px-4 font-bold text-slate-900">{{ $row->nama_event }}</td>
+                                    <td class="py-4 px-4 font-bold text-slate-900">{{ $row->nama_acara ?? $row->nama_event }}</td>
                                     <td class="py-4 px-4 text-xs">
                                         <div class="font-semibold text-slate-800">
                                             {{ $row->tanggal_mulai ? $row->tanggal_mulai->format('d M Y, H:i') : '-' }}
@@ -339,12 +355,14 @@
                                 @endphp
                                 <td class="py-4 px-4 text-right">
                                     <div class="inline-flex items-center gap-1.5">
-                                        <button @click="selectedRecord = {{ json_encode($row) }}; modalOpen = true" 
+                                        <button type="button" 
+                                                @click="openDetail(@js($row->attributesToArray()))" 
                                                 title="Lihat Detail"
                                                 class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-600 text-xs font-semibold transition-colors inline-flex items-center gap-1.5 shadow-sm">
                                             <i class="fa-solid fa-eye text-[11px]"></i>
                                         </button>
-                                        <button @click="editRecord = {{ json_encode($editData) }}; editOpen = true" 
+                                        <button type="button" 
+                                                @click="openEdit(@js($editData))" 
                                                 title="Edit Data"
                                                 class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-amber-500 hover:text-white text-slate-600 text-xs font-semibold transition-colors inline-flex items-center gap-1.5 shadow-sm">
                                             <i class="fa-solid fa-pen text-[11px]"></i>
@@ -352,13 +370,14 @@
                                         @php
                             $labelField = [
                                 'angkatan' => 'nama_angkatan', 'kelas' => 'nama_kelas', 'alumni' => 'nama_lengkap',
-                                'users' => 'username', 'albums' => 'nama_album', 'galleries' => 'keterangan',
-                                'artikels' => 'judul', 'acara' => 'nama_event', 'pengurus_alumni' => 'jabatan',
+                                'users' => 'username', 'albums' => 'nama_album', 'galleries' => 'caption',
+                                'artikels' => 'judul', 'acara' => 'nama_acara', 'pengurus_alumni' => 'jabatan',
                                 'prestasi_alumni' => 'nama_prestasi', 'testimonies' => 'pesan', 'contents' => 'judul',
                             ][$table] ?? 'id';
-                            $deleteLabel = $row->{$labelField} ?? ('#' . $row->id);
+                            $deleteLabel = $row->{$labelField} ?? ($row->nama_event ?? ('#' . $row->id));
                         @endphp
-                        <button @click="deleteRecord = { id: {{ $row->id }}, label: {{ json_encode(\Illuminate\Support\Str::limit($deleteLabel, 60)) }} }; deleteOpen = true" 
+                                        <button type="button" 
+                                                @click="openDelete({{ $row->id }}, @js(\Illuminate\Support\Str::limit($deleteLabel, 60)))" 
                                                 title="Hapus Data"
                                                 class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-rose-600 hover:text-white text-slate-600 text-xs font-semibold transition-colors inline-flex items-center gap-1.5 shadow-sm">
                                             <i class="fa-solid fa-trash text-[11px]"></i>
@@ -401,42 +420,41 @@
     </div>
 
     <!-- DETAIL RECORD MODAL -->
-    <div x-cloak x-show="modalOpen" class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
-        <!-- Backdrop -->
-        <div x-show="modalOpen" 
-             x-transition:enter="transition ease-out duration-200" 
-             x-transition:enter-start="opacity-0" 
-             x-transition:enter-end="opacity-100" 
-             x-transition:leave="transition ease-in duration-150" 
-             x-transition:leave-start="opacity-100" 
-             x-transition:leave-end="opacity-0" 
-             @click="modalOpen = false" 
-             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div x-cloak x-show="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true">
+        <!-- Backdrop Overlay -->
+        <div x-show="modalOpen"
+             x-transition:enter="transition-opacity ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="modalOpen = false"
+             class="fixed inset-0 bg-slate-950/80"></div>
 
         <!-- Modal Dialog -->
-        <div class="flex min-h-full items-center justify-center p-4">
-            <div x-show="modalOpen" 
-                 x-transition:enter="transition ease-out duration-300 transform" 
-                 x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95" 
-                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
-                 x-transition:leave="transition ease-in duration-200 transform" 
-                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
-                 x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95" 
-                 class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+        <div x-show="modalOpen"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 translate-y-3 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-3 sm:scale-95"
+             class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl shadow-slate-950/30 border border-slate-200/90 overflow-hidden z-10 max-h-[90vh] flex flex-col">
                 
                 <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shadow-xs">
                             <i class="fa-solid fa-database"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-800 text-sm"></h3>
+                            <h3 class="font-bold text-slate-800 text-sm">Detail Data</h3>
                             <p class="text-[11px] text-slate-500">Tabel: <code class="font-mono text-indigo-600 font-semibold">{{ $table }}</code></p>
                         </div>
                     </div>
-                    <button @click="modalOpen = false" class="text-slate-400 hover:text-slate-700 p-1">
-                        <i class="fa-solid fa-xmark text-lg"></i>
+                    <button @click="modalOpen = false" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
 
@@ -446,57 +464,69 @@
                         <div class="space-y-3">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <template x-for="(value, key) in selectedRecord" :key="key">
-                                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-100" x-show="typeof value !== 'object'">
-                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400" x-text="key"></p>
-                                        <p class="text-xs sm:text-sm font-semibold text-slate-800 mt-0.5 break-words" x-text="value ?? '-'"></p>
+                                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70" x-show="typeof value !== 'object'">
+                                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400" x-text="key"></p>
+                                        <p class="text-xs sm:text-sm font-semibold text-slate-800 mt-1 break-words" x-text="value ?? '-'"></p>
                                     </div>
                                 </template>
                             </div>
 
                             <!-- Raw JSON View -->
                             <div class="mt-4 pt-3 border-t border-slate-100">
-                                <p class="text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                                <p class="text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <i class="fa-solid fa-code text-indigo-500"></i> Raw JSON Output:
                                 </p>
-                                <pre class="p-3 bg-slate-900 text-emerald-400 rounded-xl text-[11px] font-mono overflow-x-auto" x-text="JSON.stringify(selectedRecord, null, 2)"></pre>
+                                <pre class="p-3.5 bg-slate-900 text-emerald-400 rounded-xl text-[11px] font-mono overflow-x-auto leading-relaxed border border-slate-800" x-text="JSON.stringify(selectedRecord, null, 2)"></pre>
                             </div>
                         </div>
                     </template>
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="px-6 py-3 border-t border-slate-100 bg-slate-50 flex justify-end">
+                <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50/80 flex justify-end">
                     <button @click="modalOpen = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors">
                         Tutup
                     </button>
                 </div>
-            </div>
         </div>
     </div>
 
     <!-- CREATE MODAL -->
-    <div x-cloak x-show="createOpen" class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
-        <div x-show="createOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-             @click="createOpen = false" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div x-cloak x-show="createOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true">
+        <!-- Backdrop Overlay -->
+        <div x-show="createOpen"
+             x-transition:enter="transition-opacity ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="createOpen = false"
+             class="fixed inset-0 bg-slate-950/80"></div>
 
-        <div class="flex min-h-full items-center justify-center p-4">
-            <div x-show="createOpen" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave="transition ease-in duration-200 transform" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
-                 class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+        <!-- Modal Dialog -->
+        <div x-show="createOpen"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 translate-y-3 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-3 sm:scale-95"
+             class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl shadow-slate-950/30 border border-slate-200/90 overflow-hidden z-10">
 
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center font-bold text-sm shadow-xs">
                             <i class="fa-solid fa-plus"></i>
                         </div>
                         <div>
                             <h3 class="font-bold text-slate-800 text-sm">Tambah Data Baru</h3>
-                            <p class="text-[11px] text-slate-500">Tabel: <code class="font-mono text-indigo-600 font-semibold">{{ $table }}</code></p>
+                            <p class="text-[11px] text-slate-500">Tabel: <code class="font-mono text-emerald-600 font-semibold">{{ $table }}</code></p>
                         </div>
                     </div>
-                    <button @click="createOpen = false" type="button" class="text-slate-400 hover:text-slate-700 p-1">
-                        <i class="fa-solid fa-xmark text-lg"></i>
+                    <button @click="createOpen = false" type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-base"></i>
                     </button>
                 </div>
 
@@ -505,13 +535,13 @@
                     <div class="p-6 max-h-[65vh] overflow-y-auto space-y-4 custom-scrollbar">
                         @foreach($formFields as $field)
                             <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1.5">
-                                    {{ $field['label'] }} @if($field['required'])<span class="text-rose-500">*</span>@endif
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                    {{ $field['label'] }} @if($field['required'])<span class="text-rose-500 font-bold">*</span>@endif
                                 </label>
 
                                 @if($field['type'] === 'select')
                                     <select name="{{ $field['name'] }}" {{ $field['required'] ? 'required' : '' }}
-                                            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                                            class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all shadow-xs">
                                         <option value="">-- Pilih {{ $field['label'] }} --</option>
                                         @foreach($field['options'] ?? [] as $optValue => $optLabel)
                                             <option value="{{ $optValue }}" {{ old($field['name']) == $optValue ? 'selected' : '' }}>{{ $optLabel }}</option>
@@ -519,136 +549,160 @@
                                     </select>
                                 @elseif($field['type'] === 'textarea')
                                     <textarea name="{{ $field['name'] }}" rows="3" {{ $field['required'] ? 'required' : '' }}
-                                              class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white">{{ old($field['name']) }}</textarea>
+                                              class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all shadow-xs">{{ old($field['name']) }}</textarea>
                                 @else
                                     <input type="{{ $field['type'] }}" name="{{ $field['name'] }}" value="{{ old($field['name']) }}" {{ $field['required'] ? 'required' : '' }}
-                                           class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                                           class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all shadow-xs">
                                 @endif
 
                                 @error($field['name'])
-                                    <p class="text-[11px] text-rose-500 mt-1">{{ $message }}</p>
+                                    <p class="text-[11px] text-rose-500 mt-1 font-medium">{{ $message }}</p>
                                 @enderror
                             </div>
                         @endforeach
                     </div>
 
-                    <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
-                        <button type="button" @click="createOpen = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors">
+                    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/80 flex justify-end gap-2.5">
+                        <button type="button" @click="createOpen = false" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-all">
                             Batal
                         </button>
-                        <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm">
+                        <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-check"></i>
                             Simpan Data
                         </button>
                     </div>
                 </form>
-            </div>
         </div>
     </div>
 
     <!-- EDIT MODAL -->
-    <div x-cloak x-show="editOpen" class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
-        <div x-show="editOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-             @click="editOpen = false" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div x-cloak x-show="editOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true">
+        <!-- Backdrop Overlay -->
+        <div x-show="editOpen"
+             x-transition:enter="transition-opacity ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="editOpen = false"
+             class="fixed inset-0 bg-slate-950/80"></div>
 
-        <div class="flex min-h-full items-center justify-center p-4">
-            <div x-show="editOpen" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave="transition ease-in duration-200 transform" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
-                 class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+        <!-- Modal Dialog -->
+        <div x-show="editOpen"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 translate-y-3 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-3 sm:scale-95"
+             class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl shadow-slate-950/30 border border-slate-200/90 overflow-hidden z-10">
 
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
-                            <i class="fa-solid fa-pen"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-800 text-sm">Ubah Data</h3>
-                            <p class="text-[11px] text-slate-500">Tabel: <code class="font-mono text-indigo-600 font-semibold">{{ $table }}</code> &bull; ID: <span x-text="editRecord.id"></span></p>
-                        </div>
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center font-bold text-sm shadow-xs">
+                        <i class="fa-solid fa-pen"></i>
                     </div>
-                    <button @click="editOpen = false" type="button" class="text-slate-400 hover:text-slate-700 p-1">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm">Ubah Data</h3>
+                        <p class="text-[11px] text-slate-500">Tabel: <code class="font-mono text-amber-600 font-semibold">{{ $table }}</code> &bull; ID: <span class="font-mono font-bold" x-text="editRecord.id"></span></p>
+                    </div>
+                </div>
+                <button @click="editOpen = false" type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <form method="POST" :action="'{{ url('table/'.$table) }}/' + (editRecord.id || '')">
+                @csrf
+                @method('PUT')
+                <div class="p-6 max-h-[65vh] overflow-y-auto space-y-4 custom-scrollbar">
+                    @foreach($formFields as $field)
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                                {{ $field['label'] }} @if($field['required'] && $field['type'] !== 'password')<span class="text-rose-500 font-bold">*</span>@endif
+                            </label>
+
+                            @if($field['type'] === 'select')
+                                <select name="{{ $field['name'] }}" x-model="editRecord.{{ $field['name'] }}" {{ $field['required'] ? 'required' : '' }}
+                                        class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all shadow-xs">
+                                    <option value="">-- Pilih {{ $field['label'] }} --</option>
+                                    @foreach($field['options'] ?? [] as $optValue => $optLabel)
+                                        <option value="{{ $optValue }}">{{ $optLabel }}</option>
+                                    @endforeach
+                                </select>
+                            @elseif($field['type'] === 'textarea')
+                                <textarea name="{{ $field['name'] }}" x-model="editRecord.{{ $field['name'] }}" rows="3" {{ $field['required'] ? 'required' : '' }}
+                                          class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all shadow-xs"></textarea>
+                            @elseif($field['type'] === 'password')
+                                <input type="password" name="{{ $field['name'] }}" x-model="editRecord.{{ $field['name'] }}"
+                                       placeholder="Kosongkan jika tidak ingin mengganti password"
+                                       class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all shadow-xs">
+                            @else
+                                <input type="{{ $field['type'] }}" name="{{ $field['name'] }}" x-model="editRecord.{{ $field['name'] }}" {{ $field['required'] ? 'required' : '' }}
+                                       class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all shadow-xs">
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
 
-                <form method="POST" :action="'{{ url('table/'.$table) }}/' + editRecord.id">
-                    @csrf
-                    @method('PUT')
-                    <div class="p-6 max-h-[65vh] overflow-y-auto space-y-4 custom-scrollbar">
-                        @foreach($formFields as $field)
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1.5">
-                                    {{ $field['label'] }} @if($field['required'] && $field['type'] !== 'password')<span class="text-rose-500">*</span>@endif
-                                </label>
-
-                                @if($field['type'] === 'select')
-                                    <select name="{{ $field['name'] }}" x-model="editRecord.{{ $field['name'] }}" {{ $field['required'] ? 'required' : '' }}
-                                            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                                        <option value="">-- Pilih {{ $field['label'] }} --</option>
-                                        @foreach($field['options'] ?? [] as $optValue => $optLabel)
-                                            <option value="{{ $optValue }}">{{ $optLabel }}</option>
-                                        @endforeach
-                                    </select>
-                                @elseif($field['type'] === 'textarea')
-                                    <textarea name="{{ $field['name'] }}" x-model="editRecord.{{ $field['name'] }}" rows="3" {{ $field['required'] ? 'required' : '' }}
-                                              class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"></textarea>
-                                @elseif($field['type'] === 'password')
-                                    <input type="password" name="{{ $field['name'] }}" x-model="editRecord.{{ $field['name'] }}"
-                                           placeholder="Kosongkan jika tidak ingin mengganti password"
-                                           class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                                @else
-                                    <input type="{{ $field['type'] }}" name="{{ $field['name'] }}" x-model="editRecord.{{ $field['name'] }}" {{ $field['required'] ? 'required' : '' }}
-                                           class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
-                        <button type="button" @click="editOpen = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-colors shadow-sm">
-                            Simpan Perubahan
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/80 flex justify-end gap-2.5">
+                    <button type="button" @click="editOpen = false" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-all">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-amber-500/20 inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i>
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- DELETE CONFIRM MODAL -->
-    <div x-cloak x-show="deleteOpen" class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
-        <div x-show="deleteOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-             @click="deleteOpen = false" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div x-cloak x-show="deleteOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true">
+        <!-- Backdrop Overlay -->
+        <div x-show="deleteOpen"
+             x-transition:enter="transition-opacity ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="deleteOpen = false"
+             class="fixed inset-0 bg-slate-950/80"></div>
 
-        <div class="flex min-h-full items-center justify-center p-4">
-            <div x-show="deleteOpen" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave="transition ease-in duration-200 transform" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
-                 class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+        <!-- Modal Dialog -->
+        <div x-show="deleteOpen"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 translate-y-3 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-3 sm:scale-95"
+             class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl shadow-slate-950/30 border border-slate-200/90 overflow-hidden z-10">
 
-                <div class="p-6 text-center">
-                    <div class="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center text-2xl mx-auto mb-4">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                    <h3 class="font-bold text-slate-800 text-base mb-1.5">Hapus data ini?</h3>
-                    <p class="text-xs text-slate-500">
-                        Anda akan menghapus <span class="font-bold text-slate-700" x-text="deleteRecord?.label"></span> secara permanen dari tabel <code class="font-mono text-indigo-600 font-semibold">{{ $table }}</code>. Tindakan ini tidak dapat dibatalkan.
-                    </p>
+            <div class="p-6 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200/80 text-rose-500 flex items-center justify-center text-2xl mx-auto mb-4 shadow-xs">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
-
-                <form method="POST" :action="'{{ url('table/'.$table) }}/' + deleteRecord?.id" class="px-6 pb-6 flex gap-2">
-                    @csrf
-                    @method('DELETE')
-                    <button type="button" @click="deleteOpen = false" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors">
-                        Batal
-                    </button>
-                    <button type="submit" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm">
-                        Ya, Hapus
-                    </button>
-                </form>
+                <h3 class="font-bold text-slate-800 text-base mb-1.5">Hapus data ini?</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Anda akan menghapus <span class="font-bold text-slate-800" x-text="deleteRecord?.label"></span> secara permanen dari tabel <code class="font-mono text-indigo-600 font-semibold">{{ $table }}</code>. Tindakan ini tidak dapat dibatalkan.
+                </p>
             </div>
+
+            <form method="POST" :action="'{{ url('table/'.$table) }}/' + (deleteRecord ? deleteRecord.id : '')" class="px-6 pb-6 flex gap-2.5">
+                @csrf
+                @method('DELETE')
+                <button type="button" @click="deleteOpen = false" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+                    Batal
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-rose-600/20 inline-flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                    Ya, Hapus
+                </button>
+            </form>
         </div>
     </div>
 

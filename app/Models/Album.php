@@ -15,8 +15,19 @@ class Album extends Model
         'user_id',
         'nama_album',
         'deskripsi',
+        'sampul_gambar',
         'cover_image',
     ];
+
+    public function getCoverImageAttribute()
+    {
+        return $this->attributes['sampul_gambar'] ?? ($this->attributes['cover_image'] ?? null);
+    }
+
+    public function setCoverImageAttribute($value)
+    {
+        $this->attributes['sampul_gambar'] = $value;
+    }
 
     public function user()
     {

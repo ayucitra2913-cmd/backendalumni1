@@ -19,22 +19,22 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('events', function (Blueprint $table) {
+        Schema::create('acara', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->string('nama_event', 200);
+            $table->string('nama_acara', 200);
             $table->text('deskripsi')->nullable();
             $table->dateTime('tanggal_mulai')->nullable();
             $table->dateTime('tanggal_selesai')->nullable();
             $table->string('lokasi', 255)->nullable();
-            $table->string('banner_image')->default('https://picsum.photos/seed/event/800/400');
+            $table->string('banner_image')->default('https://picsum.photos/seed/acara/800/400');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('events');
+        Schema::dropIfExists('acara');
         Schema::dropIfExists('artikels');
     }
 };

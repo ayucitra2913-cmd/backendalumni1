@@ -16,29 +16,32 @@ use App\Models\PrestasiAlumni;
 use App\Models\Testimony;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     /**
-     * Get summary counts for the sidebar and dashboard.
+     * Get summary counts for the sidebar and dashboard with caching.
      */
     protected function getTableCounts(): array
     {
-        return [
-            'angkatan' => Angkatan::count(),
-            'kelas' => Kelas::count(),
-            'alumni' => Alumni::count(),
-            'users' => User::count(),
-            'albums' => Album::count(),
-            'galleries' => Gallery::count(),
-            'artikels' => Artikel::count(),
-            'acara' => Acara::count(),
-            'pengurus_alumni' => PengurusAlumni::count(),
-            'prestasi_alumni' => PrestasiAlumni::count(),
-            'testimonies' => Testimony::count(),
-            'contents' => Content::count(),
-        ];
+        return Cache::remember('dashboard_table_counts', 10, function () {
+            return [
+                'angkatan' => Angkatan::count(),
+                'kelas' => Kelas::count(),
+                'alumni' => Alumni::count(),
+                'users' => User::count(),
+                'albums' => Album::count(),
+                'galleries' => Gallery::count(),
+                'artikels' => Artikel::count(),
+                'acara' => Acara::count(),
+                'pengurus_alumni' => PengurusAlumni::count(),
+                'prestasi_alumni' => PrestasiAlumni::count(),
+                'testimonies' => Testimony::count(),
+                'contents' => Content::count(),
+            ];
+        });
     }
 
     /**
@@ -104,7 +107,7 @@ class DashboardController extends Controller
             case 'kelas':
                 $query = Kelas::with('angkatan')->withCount('alumni');
                 if ($search) {
-                    $query->where('nama_kelas', 'like', "%{$search}%")
+                    $query->where('kelas', 'like', "%{$search}%")
                           ->orWhereHas('angkatan', fn($q) => $q->where('nama_angkatan', 'like', "%{$search}%"));
                 }
                 break;
@@ -115,7 +118,7 @@ class DashboardController extends Controller
                     $query->where('nama_lengkap', 'like', "%{$search}%")
                           ->orWhere('nisn', 'like', "%{$search}%")
                           ->orWhere('pekerjaan_saat_ini', 'like', "%{$search}%")
-                          ->orWhere('alamat', 'like', "%{$search}%");
+                          ->orWhere('sosial_media', 'like', "%{$search}%");
                 }
                 break;
 
@@ -139,7 +142,7 @@ class DashboardController extends Controller
             case 'galleries':
                 $query = Gallery::with('album');
                 if ($search) {
-                    $query->where('caption', 'like', "%{$search}%")
+                    $query->where('keterangan', 'like', "%{$search}%")
                           ->orWhereHas('album', fn($q) => $q->where('nama_album', 'like', "%{$search}%"));
                 }
                 break;
